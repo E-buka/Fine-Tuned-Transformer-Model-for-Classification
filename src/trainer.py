@@ -3,7 +3,7 @@ import config
 
 def build_training_args(**kwargs):
     return TrainingArguments(
-                output_dir = config.LOG_DIR , 
+                output_dir = config.OUTPUT_DIR , 
                 learning_rate = config.LEARNING_RATE, 
                 per_device_train_batch_size = config.BATCH_SIZE, 
                 per_device_eval_batch_size = config.BATCH_SIZE,
@@ -11,6 +11,7 @@ def build_training_args(**kwargs):
                 weight_decay = config.WEIGHT_DECAY, 
                 save_strategy = "epoch", 
                 push_to_hub = False,
+                logging_dir = config.LOG_DIR,
                 **kwargs
             )
     

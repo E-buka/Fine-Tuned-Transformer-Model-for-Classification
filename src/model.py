@@ -7,10 +7,21 @@ class Models:
     def distilBERT(self):
         return AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=self.num_labels)
 
-    
     def BERT(self):
-        return AutoModelForSequenceClassification.from_pretrained("BERT", num_labels=self.num_labels)
+        return AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=self.num_labels)
 
+    def RoBERTa(self):
+        return AutoModelForSequenceClassification.from_pretrained("roberta-base", num_labels=self.num_labels)
     
-    def aROBERTo(self):
-        return AutoModelForSequenceClassification("aROBERTo", num_labels=self.num_labels)
+
+def build_model(model_name, num_labels):
+    model = Models(num_labels)
+    if model_name == "distilBERT":
+        return model.distilBERT()
+    elif model_name == "BERT":
+        return model.BERT()
+    elif model_name == "RoBERTa":
+        return model.RoBERTa()
+    else:
+        raise ValueError("Enter a model name")
+        
