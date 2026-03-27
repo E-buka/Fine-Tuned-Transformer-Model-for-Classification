@@ -21,6 +21,7 @@ Thumbs.db
 data/
 models/
 output/
+outputs/
 checkpoints/
 logs/
 plots/
