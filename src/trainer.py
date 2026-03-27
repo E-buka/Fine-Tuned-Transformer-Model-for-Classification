@@ -1,5 +1,5 @@
 from transformers import TrainingArguments, Trainer 
-import config 
+from src import config 
 
 def build_training_args(**kwargs):
     return TrainingArguments(
@@ -9,9 +9,13 @@ def build_training_args(**kwargs):
                 per_device_eval_batch_size = config.BATCH_SIZE,
                 num_train_epochs = config.NUM_EPOCHS, 
                 weight_decay = config.WEIGHT_DECAY, 
+                eval_strategy= "epoch",
                 save_strategy = "epoch", 
                 push_to_hub = False,
                 logging_dir = config.LOG_DIR,
+                load_best_model_at_end=True,
+                metric_for_best_model="f1",
+                greater_is_better=True,
                 **kwargs
             )
     

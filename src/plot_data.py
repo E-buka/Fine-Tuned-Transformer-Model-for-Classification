@@ -1,4 +1,4 @@
-from tweet_logger import build_logger 
+from src.tweet_logger import build_logger 
 import os 
 
 filename = os.path.basename(__file__)

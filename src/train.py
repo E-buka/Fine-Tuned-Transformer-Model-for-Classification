@@ -1,15 +1,46 @@
 from transformers import DataCollatorWithPadding
-from utils import compute_metrics
-import config 
-from seed import set_seed
-from utils import tokenizer 
-from data import MakeDataset, read_csv_data, stratified_split
-from trainer import ModelTrainer, build_training_args
-from model import build_model 
+from src.utils import compute_metrics
+from src import config 
+from src.seed import set_seed
+from src.utils import tokenizer 
+from src.data import MakeDataset, read_csv_data, stratified_split
+from src.trainer import ModelTrainer, build_training_args
+from src.model import build_model 
+from src.tweet_logger import build_logger 
+from sklearn.metrics import classification_report, confusion_matrix 
 
-from tweet_logger import build_logger 
+from pathlib import Path
 import time
 import os
+import re 
+import numpy as np
+import json
+
+def is_complete_checkpoint(path: Path) -> bool:
+    existing = {p.name for p in path.iterdir() if p.is_file()}
+    has_model_file = "model.safetensors" in existing or "pytorch_model.bin" in existing 
+    return has_model_file and config.REQUIRED_CHECKPOINT_FILES.issubset(existing)
+
+def find_latest_checkpoint(output_dir):
+    output_path = Path(output_dir)
+    if not output_path.exists():
+        return None
+    
+    checkpoints = []
+    for p in output_path.iterdir():
+        if p.is_dir() and re.match(r"checkpoint-\d+$", p.name):
+            step = int(p.name.split("-")[-1])
+            if is_complete_checkpoint(p):
+                checkpoints.append((step, p))
+            else:
+                print(f"Skipping incomplete checkpoint: {p}")
+            
+    if not checkpoints:
+        return None
+    
+    checkpoints.sort(key=lambda x : x[0])
+    print(f"Resuming from: {checkpoints[-1][1]}")
+    return str(checkpoints[-1][1]) 
 
 
 
@@ -24,15 +55,21 @@ def main(config):
     
     
     logger.info("\n\nReading csv file and splitting data...")
-    tweet_df = read_csv_data("data/tweets.csv", config.FEATURE_COL, config.LABEL_COL, encoding=config.ENCODING)
+    tweet_df = read_csv_data(
+        config.DATA_PATH, 
+        config.FEATURE_COL, 
+        config.LABEL_COL, 
+        encoding=config.ENCODING
+        )
     
     try:
-        train_df, test_df, val_df = stratified_split(tweet_df) #save the test data maybefor another script???
+        train_df, test_df, val_df = stratified_split(tweet_df) 
         
-        logger.info(f"============ DATA SPLITS =============\
-            \n=== val_df ===\n{val_df[config.LABEL_COL].value_counts()} \
-                \n=== test_df ===\n{test_df[config.LABEL_COL].value_counts()} \
-                     \n=== train_df ===\n{train_df[config.LABEL_COL].value_counts()}")
+        logger.info(f"============ DATA SPLITS ============="
+            f"\n=== val_df ===\n{val_df[config.LABEL_COL].value_counts()}"
+            f"\n=== test_df ===\n{test_df[config.LABEL_COL].value_counts()}"
+            f"\n=== train_df ===\n{train_df[config.LABEL_COL].value_counts()}"
+            )
   
     except Exception as e: 
         logger.critical(f"A critical error occurred:\n\tNO CSV DATA RETREIVED")
@@ -67,7 +104,7 @@ def main(config):
                                 compute_metrics=compute_metrics)
     
     logger.debug("Building training arguments...") 
-    training_args= build_training_args(logging_steps=25, max_steps=50)
+    training_args= build_training_args()
     trainer = tuned_model.build_trainer(train_data, val_data, training_args)
     
     logger.info("============BATCH TRAINING INFORMATION============")
@@ -77,23 +114,53 @@ def main(config):
     logger.info(f"Steps per epoch: {len(train_data) // config.BATCH_SIZE}")
     logger.info(f"Approx total steps: {(len(train_data) // config.BATCH_SIZE) * config.NUM_EPOCHS}")
     
+    latest_checkpoint = find_latest_checkpoint(training_args.output_dir)
+    
+    if latest_checkpoint is not None:
+        logger.info (f"Resuming training from checkpoint: {latest_checkpoint}")
+    else: 
+        logger.info("No checkpoint found. Starting frehs training run.")
+            
     logger.debug("Starting Training...")
     train_start = time.time()
-    #trainer.train()
+    trainer.train(resume_from_checkpoint=latest_checkpoint)
     train_stop = time.time()
+    
     logger.debug("Training Complete") 
     train_time = train_stop - train_start
     logger.info(f"Total train time in seconds: {train_time}")
 
     logger.debug("Starting Evaluation...")   
     eval_start = time.time()
-    #trainer.evaluate() 
+    trainer.evaluate() 
     eval_stop = time.time()
+    
     logger.debug("Evaluation Complete...")
     eval_time = eval_stop - eval_start 
     logger.info(f"Total evaluation time: {eval_time}")
     
-    logger.info("Model training completed successfully with checkpoint saved")
+    logger.info("Model training completed successfully with best model saved")
+    
+    logger.debug("Starting test prediction...")
+    test_output = trainer.predict(test_data)
+    
+    y_pred = np.argmax(test_output.predictions, axis=1)
+    y_true = test_output.label_ids 
+    
+    cm = confusion_matrix(y_true, y_pred)
+    clf_report = classification_report(y_true, y_pred)
+    
+    print(cm)
+    print(clf_report)
+    
+    logger.info(f"Confusion matrix: \n{cm}")
+    logger.info(f"Classification report: \n{clf_report}")
+    logger.info(f"Test metrics: {test_output.metrics}")
+    
+    with open("test_metrics.json", "w") as f:
+        json.dump(test_output.metrics, f, indent=2)
+    
+    logger.info("Model prediction completed succesfully.")    
     logger.removeHandler(console_handler)
     logger.removeHandler(file_handler)
     

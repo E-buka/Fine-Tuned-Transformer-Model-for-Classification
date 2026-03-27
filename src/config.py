@@ -10,8 +10,11 @@ PLOT_DIR = PROJECT_ROOT / "plots"
 for folder in [OUTPUT_DIR, LOG_DIR, PLOT_DIR]: 
     folder.mkdir(parents=True, exist_ok=True)
     
+    
+DATA_PATH = "data/tweets.csv"
+    
 BATCH_SIZE = 64
-NUM_EPOCHS = 2 
+NUM_EPOCHS = 20 
 LEARNING_RATE = 1e-3 
 MAX_VOCAB_SIZE = 20000
 MAX_SEQ_LEN = 512
@@ -28,4 +31,13 @@ LABEL_COL = "Target"
 ENCODING = "ISO-8859-1"
 
 SEED = 777
+
+REQUIRED_CHECKPOINT_FILES = {
+    "optimizer.pt",
+    "scheduler.pt",
+    "trainer_state.json",
+    "training_args.bin",
+    "rng_state.pth",
+}
+
 

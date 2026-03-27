@@ -1,10 +1,8 @@
 from transformers import pipeline 
 
-# do i need this
-#trainer.push_to_hub()
 
-model_link = ROOT/"models"
-sentiment_model = pipeline(model=model_link)
+
+sentiment_model = pipeline(model='')
 
 example_texts = ["try this!", "and that"] 
 
