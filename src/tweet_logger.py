@@ -1,5 +1,5 @@
 import logging
-from src import config 
+import config 
 
 def build_logger(name):
     log_dir = config.LOG_DIR 

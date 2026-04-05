@@ -1,0 +1,25 @@
+{
+  "test metrics": {
+    "test_loss": 0.39236605167388916,
+    "test_accuracy": 0.864426457904863,
+    "test_f1": 0.7815256321163201,
+    "test_precision": 0.7753500212134069,
+    "test_recall": 0.7878004095268887,
+    "test_average_precision": 0.8676622518047539,
+    "test_roc_auc": 0.9290531744799982,
+    "test_runtime": 61.5421,
+    "test_samples_per_second": 489.844,
+    "test_steps_per_second": 15.323
+  },
+  "confusion_matrix": [
+    [
+      18749,
+      2118
+    ],
+    [
+      1969,
+      7310
+    ]
+  ],
+  "classification_report": "              precision    recall  f1-score   support\n\n           0       0.90      0.90      0.90     20867\n           1       0.78      0.79      0.78      9279\n\n    accuracy                           0.86     30146\n   macro avg       0.84      0.84      0.84     30146\nweighted avg       0.87      0.86      0.86     30146\n"
+}

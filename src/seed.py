@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from numpy import random
-from src import config
+import config
 
 def set_seed():
     

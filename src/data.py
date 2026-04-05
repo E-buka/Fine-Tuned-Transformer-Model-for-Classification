@@ -4,7 +4,7 @@ import re
 import numpy as np
 from sklearn.model_selection import train_test_split 
 from torch.utils.data import Dataset, random_split
-from src.config import LABEL_COL, MAX_SEQ_LEN
+from config import LABEL_COL, MAX_SEQ_LEN
 
 
 class MakeDataset(Dataset):

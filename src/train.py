@@ -1,13 +1,13 @@
 from transformers import DataCollatorWithPadding
-from src.utils import compute_metrics
-from src import config 
-from src.seed import set_seed
-from src.utils import tokenizer 
-from src.data import MakeDataset, read_csv_data, stratified_split
-from src.trainer import ModelTrainer, build_training_args
-from src.model import build_model 
-from src.tweet_logger import build_logger 
+from utils import compute_metrics, tokenizer
+import config 
+from seed import set_seed
+from data import MakeDataset, read_csv_data, stratified_split
+from trainer import ModelTrainer, build_training_args
+from model import build_model 
+from tweet_logger import build_logger 
 from sklearn.metrics import classification_report, confusion_matrix 
+from sklearn.utils.class_weight import compute_class_weight
 
 from pathlib import Path
 import time
@@ -15,6 +15,7 @@ import os
 import re 
 import numpy as np
 import json
+import torch
 
 def is_complete_checkpoint(path: Path) -> bool:
     existing = {p.name for p in path.iterdir() if p.is_file()}
@@ -54,7 +55,7 @@ def main(config):
     logger.addHandler(console_handler)
     
     
-    logger.info("\n\nReading csv file and splitting data...")
+    logger.info("Reading csv file and splitting data...")
     tweet_df = read_csv_data(
         config.DATA_PATH, 
         config.FEATURE_COL, 
@@ -77,6 +78,20 @@ def main(config):
         logger.removeHandler(console_handler)
         logger.removeHandler(file_handler)
         return 
+    
+    logger.debug("Writing test tweet dataset to folder")
+    test_df.to_csv("data/test_tweet.csv")
+    
+    logger.debug("Computing class_weights...")
+    labels = train_df[config.LABEL_COL].to_numpy()
+    
+    class_weights = compute_class_weight(
+        class_weight="balanced",
+        classes=np.unique(labels),
+        y=labels
+    )
+    class_weights = torch.tensor(class_weights, dtype=torch.float)
+    logger.info(f"Computed class weights: \n{class_weights}")
     
     logger.debug("Setting tokenizer and data collator...")
     tokenizer = tokenizer(config.MODEL_TOKENIZER)
@@ -101,7 +116,8 @@ def main(config):
     tuned_model = ModelTrainer(model=model,
                                 tokenizer=tokenizer,
                                 data_collator=data_collator,
-                                compute_metrics=compute_metrics)
+                                compute_metrics=compute_metrics,
+                                class_weights = class_weights)
     
     logger.debug("Building training arguments...") 
     training_args= build_training_args()
@@ -119,7 +135,7 @@ def main(config):
     if latest_checkpoint is not None:
         logger.info (f"Resuming training from checkpoint: {latest_checkpoint}")
     else: 
-        logger.info("No checkpoint found. Starting frehs training run.")
+        logger.info("No checkpoint found. Starting fresh training run.")
             
     logger.debug("Starting Training...")
     train_start = time.time()
@@ -139,6 +155,10 @@ def main(config):
     eval_time = eval_stop - eval_start 
     logger.info(f"Total evaluation time: {eval_time}")
     
+    best_model_path = f"{training_args.output_dir}/best_model"
+    trainer.save_model(best_model_path)
+    tokenizer.save_pretrained(best_model_path)
+    
     logger.info("Model training completed successfully with best model saved")
     
     logger.debug("Starting test prediction...")
@@ -157,8 +177,13 @@ def main(config):
     logger.info(f"Classification report: \n{clf_report}")
     logger.info(f"Test metrics: {test_output.metrics}")
     
-    with open("test_metrics.json", "w") as f:
-        json.dump(test_output.metrics, f, indent=2)
+    combined_results = {
+        "test metrics" : test_output.metrics,
+        "confusion_matrix": cm.tolist(),
+        "classification_report": clf_report
+    }
+    with open(config.TEST_METRICS_FILE, "a") as f:
+        json.dump(combined_results, f, indent=2)    
     
     logger.info("Model prediction completed succesfully.")    
     logger.removeHandler(console_handler)

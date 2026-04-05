@@ -8,10 +8,10 @@ class Models:
         return AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=self.num_labels)
 
     def BERT(self):
-        return AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=self.num_labels)
+        return AutoModelForSequenceClassification.from_pretrained("google-bert/bert-base-uncased", num_labels=self.num_labels)
 
     def RoBERTa(self):
-        return AutoModelForSequenceClassification.from_pretrained("roberta-base", num_labels=self.num_labels)
+        return AutoModelForSequenceClassification.from_pretrained("FacebookAI/roberta-base", num_labels=self.num_labels)
     
 
 def build_model(model_name, num_labels):
