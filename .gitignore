@@ -13,6 +13,10 @@ __pycache__/
 # environment files
 .env
 
+# log files 
+logs/*
+!logs/.gitkeep
+
 # system files
 .DS_Store
 Thumbs.db
@@ -26,6 +30,13 @@ checkpoints/
 logs/
 plots/
 artifacts/
+models/*
+outputs/*
+!models/.gitkeep
+!outputs/.gitkeep
 
 # vscode
 .vscode/
+
+# dataset
+data/

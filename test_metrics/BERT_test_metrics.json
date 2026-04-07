@@ -1,29 +1,5 @@
 {
   "test metrics": {
-    "test_loss": 0.419368714094162,
-    "test_accuracy": 0.8494659324620182,
-    "test_f1": 0.7680196298946937,
-    "test_precision": 0.7305261110570845,
-    "test_recall": 0.809569996766893,
-    "test_average_precision": 0.8492269243633384,
-    "test_roc_auc": 0.9187290474061102,
-    "test_runtime": 64.7237,
-    "test_samples_per_second": 465.764,
-    "test_steps_per_second": 14.57
-  },
-  "confusion_matrix": [
-    [
-      18096,
-      2771
-    ],
-    [
-      1767,
-      7512
-    ]
-  ],
-  "classification_report": "              precision    recall  f1-score   support\n\n           0       0.91      0.87      0.89     20867\n           1       0.73      0.81      0.77      9279\n\n    accuracy                           0.85     30146\n   macro avg       0.82      0.84      0.83     30146\nweighted avg       0.86      0.85      0.85     30146\n"
-}{
-  "test metrics": {
     "test_loss": 0.4181336462497711,
     "test_accuracy": 0.8501293703973993,
     "test_f1": 0.7686162040356448,

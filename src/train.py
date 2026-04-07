@@ -11,7 +11,6 @@ from sklearn.utils.class_weight import compute_class_weight
 
 from pathlib import Path
 import time
-import os
 import re 
 import numpy as np
 import json
@@ -48,9 +47,8 @@ def find_latest_checkpoint(output_dir):
 def main(config): 
     global tokenizer
     _ = set_seed()
-    filename = os.path.basename(__file__)
     
-    logger, file_handler, console_handler = build_logger(filename)
+    logger, file_handler, console_handler = build_logger()
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
     
@@ -182,7 +180,7 @@ def main(config):
         "confusion_matrix": cm.tolist(),
         "classification_report": clf_report
     }
-    with open(config.TEST_METRICS_FILE, "a") as f:
+    with open(config.TEST_METRICS_FILE, "w") as f:
         json.dump(combined_results, f, indent=2)    
     
     logger.info("Model prediction completed succesfully.")    

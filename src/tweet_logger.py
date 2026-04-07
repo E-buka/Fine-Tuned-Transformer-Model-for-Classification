@@ -1,11 +1,11 @@
 import logging
 import config 
 
-def build_logger(name):
-    log_dir = config.LOG_DIR 
-    log_file = log_dir/"tweet.log"
 
-    logger = logging.getLogger(name)
+def build_logger():
+    log_file = config.LOG_FILE 
+
+    logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     
     file_handler = logging.FileHandler(filename=log_file, mode="a", encoding="utf-8")
@@ -18,3 +18,4 @@ def build_logger(name):
     console_handler.setFormatter(formatting)
     
     return logger, file_handler, console_handler
+

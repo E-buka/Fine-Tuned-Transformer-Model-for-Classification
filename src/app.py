@@ -1,20 +1,24 @@
-from inference import tweet_predictor 
+from inference import load_model 
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi import HTTPException 
 from contextlib import asynccontextmanager 
 from fastapi.responses import Response 
 
-app = FastAPI(title="Tweet Classification")
 
 @asynccontextmanager 
-async def warmup():
+async def lifespan(app: FastAPI): 
     try:
-        if tweet_predictor: 
-            print("warmup complete")
-            
+        app.state.classifier = load_model()
+        print("Model loaded successfully")
+        yield
     except Exception as e:
-        print("warmup failed", repr(e)) 
+        raise RuntimeError(f"Model loading failed: {e}") 
+    finally:
+        print("Application shutting down")
+   
+app = FastAPI(lifespan = lifespan, title="Tweet Classification")
+
         
 class UserInput(BaseModel):
     text: str        
@@ -33,10 +37,9 @@ async def get_favicon():
     return Response(status_code=200)
 
 @app.post("/predict")
-async def predict(text: UserInput): 
+async def predict(payload: UserInput): 
     try: 
-        output = tweet_predictor(text.text)
+        output = app.state.classifier(payload.text)
         return output 
     except Exception as e:
-        print("Prediction error", repr(e))
-        raise HTTPException(status_code=500, details=str(e))
+        raise HTTPException(status_code=500, detail=str(e))

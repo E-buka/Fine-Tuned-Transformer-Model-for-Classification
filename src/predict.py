@@ -37,10 +37,10 @@ def predict(texts, model, tokenizer, batch_size=config.BATCH_SIZE, max_length=co
                 
                 inputs = tokenizer(
                         batch_texts,
-                                   padding = True,
-                                   truncation=True,
-                                   return_tensors="pt", 
-                                   max_lenght=max_length
+                        padding = True,
+                        truncation=True,
+                        return_tensors="pt", 
+                        max_length=max_length
                                    )
                 
                 inputs = {k: v.to(device) for k, v in inputs.items()}

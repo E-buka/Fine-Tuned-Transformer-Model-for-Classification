@@ -17,7 +17,7 @@ def build_training_args(**kwargs):
                 eval_strategy= "epoch",
                 save_strategy = "epoch", 
                 push_to_hub = False,
-                logging_dir = config.LOG_DIR,
+                logging_dir = config.LOG_BASE,
                 load_best_model_at_end=True,
                 metric_for_best_model="f1",
                 greater_is_better=True,
