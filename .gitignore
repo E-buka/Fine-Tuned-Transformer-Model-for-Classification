@@ -1,42 +1,21 @@
-# virtual environment
 .venv/
-
-# python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Jupyter
 .ipynb_checkpoints/
-
-# environment files
 .env
-
-# log files 
-logs/*
-!logs/.gitkeep
-
-# system files
+.vscode/
 .DS_Store
 Thumbs.db
 
-# model/data artifacts
-data/
-models/
-output/
-outputs/
-checkpoints/
-logs/
-plots/
-artifacts/
-models/*
+logs/*
+!logs/.gitkeep
+
 outputs/*
-!models/.gitkeep
 !outputs/.gitkeep
 
-# vscode
-.vscode/
+models/*
+!models/.gitkeep
 
-# dataset
-data/
+data/*
+!data/.gitkeep
+!data/sample_tweet.csv

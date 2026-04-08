@@ -1,34 +1,48 @@
-# Tuned Transformer Model: Tweet Sentiment Classifier 
+# Fine-Tuned Transformer Models for Tweet Sentiment Classification
 
-## Project Summary
+## Overview
 
-This project uses huggingface transformer models for tweet sentiment classification.  It uses a subset of the kaggle tweet dataset to fine tune three transformer models: distilBERT, BERT and RoBERTa. The project also builds from a previous NLP-foundation project where a deep learning model was built from scratch. 
-data link: [kaggle] (https://www.kaggle.com/datasets/bhavikjikadara/tweets-dataset/data)
+This project fine-tunes pretrained Hugging Face transformer models for tweet sentiment classification. Three models were compared on the same sampled Kaggle tweet dataset:
 
-The EDA for the subsampled dataset is contained in a notebook. The EDA revealed that the sequence length for the dataset was between 1 and 40. Therefore, a maximum sequence length of 40 was selected in the tokenization for speed and performance trade-off. 
+- DistilBERT
+- BERT
+- RoBERTa
 
-The sampled tweet dataset was split with stratification due to class imbalance into training, validation and testing dataset. The testing dataset was saved and set aside for testing the models in the end and the class weights were computed from the training dataset. For each model, a pretrained tokenizer and model was loaded and fine-tuned with the tweet dataset. The best model (roberta) was saved for prediction and inference after achieving accuracy of 86%, F1 score - 78% and ROC-AUC score - 93%. The models performance metrics are saved as json files. An offline inference and api serving was created from the best performing model. 
+The project extends earlier NLP work by moving from models built from scratch to transfer learning with pretrained language models.
 
-The predictive performance for the three models were evaluated on the test data and an error analysis was conducted on the predicted data. This is contained in a notebook. The error analysis revealed that tweets with sequence length of 15 or less were predicted with higher accuracy and confidence than tweets with sequence length of 16 or more. 
+Dataset link: [Kaggle Tweet Dataset](https://www.kaggle.com/datasets/bhavikjikadara/tweets-dataset/data)
 
-## Folder Structure 
+Exploratory data analysis showed that most tweet lengths fell between 1 and 40 tokens, so a maximum sequence length of 40 was selected as a balance between efficiency and context retention.
+
+Because the dataset is imbalanced, the data was split into training, validation, and test sets using stratification. Class weights were computed from the training data and used during model fine-tuning.
+
+Among the three models, **RoBERTa** achieved the best overall performance and was selected for inference and API serving.
+
+Best RoBERTa test results:
+
+- **Accuracy:** 86%
+- **F1-score:** 78%
+- **ROC-AUC:** 93%
+
+The project also includes:
+
+- batch prediction on the test set
+- inference for new text input
+- a FastAPI app for local or cloud serving
+- notebook-based error analysis
+
+## Folder Structure
 
 ```text
 transformer-model/
 ├── data/
-│   └── roberta_pred_df.csv
-│   └── sample_tweet.csv
 ├── logs/
 ├── notebook/
-│   ├── Transformer-tuning.ipynb
-│   ├── Tweet Classification.ipynb
-│   └── Tweet Data EDA.ipynb
 ├── outputs/
 │   ├── bert/
 │   ├── distilbert/
 │   └── roberta/
 ├── src/
-│   ├── __init__.py
 │   ├── app.py
 │   ├── config.py
 │   ├── data.py
@@ -41,12 +55,11 @@ transformer-model/
 │   ├── tweet_logger.py
 │   └── utils.py
 ├── test_metrics/
-├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 ## Installation
-create and activate a virtual environment, then install requirments
+Install the required packages:
 
 ```bash
 pip install -r requirements.txt
@@ -54,46 +67,83 @@ pip install -r requirements.txt
 
 ## Training
 
-Training parameters are contained in `config.py` file. Three models are available and can be selected by choosing a model key from the list of keys: 
+Model settings are controlled in src/config.py through MODEL_KEY.
+
+Available options:
+
 - `distilbert`
 - `bert`
 - `roberta`
 
-Then run the `train.py` file. The training process loads the selected pretrained model and corresponding pretrained tokenizer. It acquires a  logging handler and creates a logfile, loads the dataset, splits and saves the test dataset then computes class weight from the train data. It the trains the model and save the checkpoints to the output directory. The model resumes from the last checkpoint if the training is paused or terminated unexpectedly. Once training is complete the best model is saved to `outputs/model_name/best_model.pt`. The model performs a final test of the test data and saves the outcome to the test_metrics directory.  
+Training will:
+
+- load the selected pretrained model and tokenizer
+- prepare and split the dataset
+- compute class weights
+- fine-tune the model
+- resume from checkpoint if available
+- save the best model and tokenizer
+- evaluate on the held-out test set
+- save test metrics to test_metrics/ 
 
 ```bash
-python train.py
+python src/train.py
 ```
+
+Example saved model path: 
+ - outputs/roberta/best_model/
 
 ## Prediction / Inference
 
-The predict.py file loads the saved best model and tokenizer through  predict() and predicts the test data in batches. The predicted labels adn probabilities are added as columns to the dataset and saved as csv file in data directory. 
+### Batch Prediction
 
-The inference script accepts list of strings or a string and outputs the predicted label and score
-
-```bash
-python predict.py
-```
+Generates predictions for the test set and saves them to **data/.**
 
 ```bash
-python inference.py
+python src/predict.py
+```
+### Inference
+
+Loads the trained model and predicts sentiment for a single string or a list of strings.
+
+```bash
+python src/inference.py
 ```
 
-## Sample prediction output
+**Example output:**
+
 ```json
 {'label': 'positive', 'score': 0.9315873980522156}
 ```
 
-## api serving
+## API Serving
 
-The `app.py` uses FastAPI for online serving.  It loads the pretrained model and get user input through the POST method and returns a json result of predicted label and score . 
+The FastAPI app loads the trained model once at startup and serves predictions through an API.
 
-It can be hosted locally with uvicorn.
+Run locally with:
+
 ```bash
-uvicorn app:app
+uvicorn src.app:app  --reload
 ```
+## Notebooks 
 
-## Limitation
-1. The project uses only a subsample of the tweet dataset for fine tuning the models and with a maximum sequence lenght of 40.  This meant that the tokenizer can potentiall truncate useful contexts due to the small sequence length.  
-2. The error analysis did not evaluate conditions where the three models all predicted wrong class for a tweet. This could give further insight to the model performance on dataset features. 
-3. The tuned models did not optimise classification threshold for the tweet which could improve the accuracy of the models. 
+The notebooks support the experimental workflow:
+
+- **Tweet Data EDA.ipynb** — exploratory data analysis
+- **Transformer-tuning.ipynb** — Colab fine-tuning workflow
+- **Tweet Classification.ipynb** — evaluation and error analysis
+
+The reusable pipeline is implemented in the src/ scripts.
+
+## Limitations
+
+- Only a sample of the original dataset was used
+- Sequence length was capped at 40 tokens
+- Threshold tuning was not explored
+- Shared failure cases across all three models were not separately analysed
+
+## Conclusion
+
+This project presents an end-to-end transformer NLP workflow for tweet sentiment classification, covering data preparation, fine-tuning, evaluation, inference, and API serving.
+
+It also compares DistilBERT, BERT, and RoBERTa on the same task and highlights the trade-off between efficiency and predictive performance. RoBERTa achieved the best overall results and was selected as the final model.

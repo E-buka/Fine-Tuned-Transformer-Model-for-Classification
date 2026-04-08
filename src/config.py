@@ -6,7 +6,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_BASE = PROJECT_ROOT / "outputs" 
 NOTEBOOK_DIR = PROJECT_ROOT / "notebook"
 LOG_BASE = PROJECT_ROOT/ "logs"
-for folder in [OUTPUT_BASE, LOG_BASE, NOTEBOOK_DIR]: 
+TEST_METRICS_DIR = PROJECT_ROOT / "test_metrics"
+for folder in [OUTPUT_BASE, LOG_BASE, NOTEBOOK_DIR, TEST_METRICS_DIR]: 
     folder.mkdir(parents=True, exist_ok=True)
 
 
@@ -18,7 +19,7 @@ MODEL_KEY = "distilbert"
 if MODEL_KEY == 'distilbert': 
     OUTPUT_DIR = OUTPUT_BASE /"distilbert"
     PREDICTION_DF_NAME = "data/distilbert_pred_df.csv"
-    TEST_METRICS_FILE = "distilbert_test_metrics.json"
+    TEST_METRICS_FILE = TEST_METRICS_DIR / "distilbert_test_metrics.json"
     MODEL_TOKENIZER = "distilbert-base-uncased"
     MODEL_NAME = "distilbert"
     LOG_FILE = LOG_BASE/ "distilbert_log.log"   
@@ -26,7 +27,7 @@ if MODEL_KEY == 'distilbert':
 elif MODEL_KEY == "bert": 
     OUTPUT_DIR = OUTPUT_BASE /"bert"
     PREDICTION_DF_NAME = "data/bert_pred_df.csv"
-    TEST_METRICS_FILE = "bert_test_metrics.json"
+    TEST_METRICS_FILE = TEST_METRICS_DIR / "bert_test_metrics.json"
     MODEL_TOKENIZER = "google-bert/bert-base-uncased"
     MODEL_NAME = "bert"
     LOG_FILE = LOG_BASE/"bert_log.log"   
@@ -34,7 +35,7 @@ elif MODEL_KEY == "bert":
 else:
     OUTPUT_DIR = OUTPUT_BASE /"roberta"
     PREDICTION_DF_NAME = "data/roberta_pred_df.csv"
-    TEST_METRICS_FILE = "roberta_test_metrics.json"
+    TEST_METRICS_FILE = TEST_METRICS_DIR / "roberta_test_metrics.json"
     MODEL_TOKENIZER = "FacebookAI/roberta-base"
     MODEL_NAME = "roberta"
     LOG_FILE = LOG_BASE/ "roberta_log.log" 

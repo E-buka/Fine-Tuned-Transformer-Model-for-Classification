@@ -78,7 +78,7 @@ def main(config):
         return 
     
     logger.debug("Writing test tweet dataset to folder")
-    test_df.to_csv("data/test_tweet.csv")
+    test_df.to_csv("data/test_tweet.csv", index=False)
     
     logger.debug("Computing class_weights...")
     labels = train_df[config.LABEL_COL].to_numpy()
