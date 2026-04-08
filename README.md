@@ -91,7 +91,9 @@ python src/train.py
 ```
 
 Example saved model path: 
- - outputs/roberta/best_model/
+```bash
+ outputs/roberta/best_model/
+ ```
 
 ## Prediction / Inference
 
@@ -123,7 +125,7 @@ The FastAPI app loads the trained model once at startup and serves predictions t
 Run locally with:
 
 ```bash
-uvicorn src.app:app  --reload
+uvicorn src.app:app --reload
 ```
 ## Notebooks 
 
